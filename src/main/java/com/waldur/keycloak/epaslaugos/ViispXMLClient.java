@@ -277,9 +277,17 @@ public class ViispXMLClient {
 
         // Add namespace declarations to the root element
         Element rootElement = document.getDocumentElement();
-        rootElement.setAttribute("xmlns:ns2", "http://www.w3.org/2000/09/xmldsig#");
-        rootElement.setAttribute("xmlns:ns3", "http://www.w3.org/2001/10/xml-exc-c14n#");
+        rootElement.setAttributeNS(
+                "http://www.w3.org/2000/xmlns/",
+                "xmlns:ns2",
+                "http://www.w3.org/2000/09/xmldsig#"
+        );
 
+        rootElement.setAttributeNS(
+                "http://www.w3.org/2000/xmlns/",
+                "xmlns:ns3",
+                "http://www.w3.org/2001/10/xml-exc-c14n#"
+        );
         return document;
     }
 
