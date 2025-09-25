@@ -3,7 +3,6 @@ package com.waldur.keycloak.epaslaugos;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ViispUserInformation {
-
     ID("id"),
     FIRST_NAME("firstName"),
     LAST_NAME("lastName"),
@@ -15,7 +14,7 @@ public enum ViispUserInformation {
     NATIONALITY("nationality"),
     PROXY_TYPE("proxyType"),
     PROXY_SOURCE("proxySource");
-    
+
     private final String value;
 
     ViispUserInformation(String v) {
@@ -28,7 +27,7 @@ public enum ViispUserInformation {
     }
 
     public static ViispUserInformation fromValue(String v) {
-        for (ViispUserInformation c: ViispUserInformation.values()) {
+        for (ViispUserInformation c : ViispUserInformation.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

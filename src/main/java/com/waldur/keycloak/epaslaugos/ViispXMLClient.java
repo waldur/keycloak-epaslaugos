@@ -1,5 +1,6 @@
 package com.waldur.keycloak.epaslaugos;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -12,13 +13,7 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-
+import java.util.*;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.crypto.dsig.Reference;
@@ -41,7 +36,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -58,7 +52,8 @@ public class ViispXMLClient {
     public static final String SIGNED_NODE_ID = "uniqueNodeId";
     public static final String TEST_PID = "VSID000000000113";
 
-    private static final XMLSignatureFactory XML_SIGNATURE_FACTORY = XMLSignatureFactory.getInstance("DOM");
+    private static final XMLSignatureFactory XML_SIGNATURE_FACTORY =
+            XMLSignatureFactory.getInstance("DOM");
     private static final Logger LOG = LoggerFactory.getLogger(ViispXMLClient.class);
 
     private final ViispIdentityProviderConfig config;
@@ -88,10 +83,13 @@ public class ViispXMLClient {
 
         if (keystorePath.startsWith("/")) {
             // Load from classpath
-            keyStore.load(getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
+            keyStore.load(
+                    getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
         } else {
             // Load from file system
-            keyStore.load(FileUtils.openInputStream(FileUtils.getFile(keystorePath)), keystorePassword.toCharArray());
+            keyStore.load(
+                    FileUtils.openInputStream(FileUtils.getFile(keystorePath)),
+                    keystorePassword.toCharArray());
         }
 
         for (Enumeration<String> e = keyStore.aliases(); e.hasMoreElements(); ) {
@@ -109,62 +107,106 @@ public class ViispXMLClient {
         }
     }
 
-    public String sendAuthRequest(String authRequest, boolean isTestMode) throws IOException, InterruptedException {
-        String authRequestBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
-                "<soap:Body>" +
-                authRequest +
-                "</soap:Body>" +
-                "</soap:Envelope>";
-        String authServiceURL = isTestMode ?
-                "https://test.epaslaugos.lt/services/services/auth" :
-                "https://epaslaugos.lt/services/services/auth";
+    public String sendAuthRequest(String authRequest, boolean isTestMode)
+            throws IOException, InterruptedException {
+        String authRequestBody =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+                        + "<soap:Body>"
+                        + authRequest
+                        + "</soap:Body>"
+                        + "</soap:Envelope>";
+        String authServiceURL =
+                isTestMode
+                        ? "https://test.epaslaugos.lt/services/services/auth"
+                        : "https://epaslaugos.lt/services/services/auth";
 
         HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(authServiceURL))
-                .header("Content-Type", "text/xml; charset=utf-8")
-                .header("SOAPAction", "")
-                .POST(HttpRequest.BodyPublishers.ofString(authRequestBody))
-                .build();
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(authServiceURL))
+                        .header("Content-Type", "text/xml; charset=utf-8")
+                        .header("SOAPAction", "")
+                        .POST(HttpRequest.BodyPublishers.ofString(authRequestBody))
+                        .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         LOG.info("Auth response status: {}", response.statusCode());
+
+        if (response.statusCode() != HttpStatus.SC_OK) {
+            throw new RuntimeException(
+                    String.format(
+                            "VIISP auth request failed. Expected 200, got %d. Response: %s",
+                            response.statusCode(), response.body()));
+        }
         return response.body();
     }
 
-    public HttpResponse<String> submitAuthenticationTicket(String ticketId, boolean isTestMode) throws IOException, InterruptedException {
+    public String sendAuthDataRequest(String authDataRequest, boolean isTestMode)
+            throws IOException, InterruptedException {
+        String authDataRequestBody =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"
+                        + "<soap:Body>"
+                        + authDataRequest
+                        + "</soap:Body>"
+                        + "</soap:Envelope>";
+        String authServiceURL =
+                isTestMode
+                        ? "https://test.epaslaugos.lt/services/services/auth"
+                        : "https://epaslaugos.lt/services/services/auth";
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(authServiceURL))
+                        .header("Content-Type", "text/xml; charset=utf-8")
+                        .header("SOAPAction", "")
+                        .POST(HttpRequest.BodyPublishers.ofString(authDataRequestBody))
+                        .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        LOG.info("Auth data response status: {}", response.statusCode());
+        return response.body();
+    }
+
+    public HttpResponse<String> submitAuthenticationTicket(String ticketId, boolean isTestMode)
+            throws IOException, InterruptedException {
         if (ticketId == null || ticketId.trim().isEmpty()) {
             throw new IllegalArgumentException("Ticket ID cannot be null or empty");
         }
 
-        String viispAuthUrl = isTestMode
-                ? "https://test.epaslaugos.lt/portal/external/services/authentication/v2"
-                : "https://epaslaugos.lt/portal/external/services/authentication/v2";
+        String viispAuthUrl =
+                isTestMode
+                        ? "https://test.epaslaugos.lt/portal/external/services/authentication/v2"
+                        : "https://epaslaugos.lt/portal/external/services/authentication/v2";
 
+        LOG.info("Submitting authentication ticket {} to {}", ticketId, viispAuthUrl);
         // Third-party provided format: form with dynamic action URL and ticket value
-        String soapBodyFormat = "<form name=\"REQUEST\" method=\"post\" action=\"%s\"><input type=\"hidden\" name=\"ticket\" value=\"%s\"/></form>\n";
+        String soapBodyFormat =
+                "<form name=\"REQUEST\" method=\"post\" action=\"%s\"><input type=\"hidden\" name=\"ticket\" value=\"%s\"/></form>\n";
         String soapBody = String.format(soapBodyFormat, viispAuthUrl, ticketId.trim());
 
-        HttpClient client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .build();
+        HttpClient client =
+                HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(viispAuthUrl))
-                .header("Content-Type", "text/xml; charset=utf-8")
-                .header("SOAPAction", "")
-                .POST(HttpRequest.BodyPublishers.ofString(soapBody))
-                .build();
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(viispAuthUrl))
+                        .header("Content-Type", "text/xml; charset=utf-8")
+                        .header("SOAPAction", "")
+                        .POST(HttpRequest.BodyPublishers.ofString(soapBody))
+                        .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != HttpStatus.SC_MOVED_TEMPORARILY) {
-            throw new RuntimeException(String.format(
-                    "VIISP ticket submission failed. Expected 302 redirect, got %d. Response: %s",
-                    response.statusCode(), response.body()
-            ));
+            throw new RuntimeException(
+                    String.format(
+                            "VIISP ticket submission failed. Expected 302 redirect, got %d. Response: %s",
+                            response.statusCode(), response.body()));
         }
 
         return response;
@@ -174,8 +216,8 @@ public class ViispXMLClient {
         ViispAuthenticationRequest request = new ViispAuthenticationRequest();
         request.setId(SIGNED_NODE_ID);
         request.setPid(serviceId != null ? serviceId : TEST_PID);
-//        request.setPostbackUrl(callbackUrl);
-//        request.setCustomData(UUID.randomUUID().toString());
+        request.setPostbackUrl(callbackUrl);
+        request.setCustomData(UUID.randomUUID().toString()); // TODO: cache this value for callback
 
         // Set service target
         request.setServiceTarget(ViispServiceTarget.CITIZEN);
@@ -183,16 +225,20 @@ public class ViispXMLClient {
         // Add authentication providers
         request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_LOGIN_PASS);
         request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_LT_IDENTITY_CARD);
-        request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_LT_GOVERNMENT_EMPLOYEE_CARD);
+        request.getAuthenticationProvider()
+                .add(ViispAuthenticationProvider.AUTH_LT_GOVERNMENT_EMPLOYEE_CARD);
         request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_LT_BANK);
         request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_EIDAS);
-        request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_SIGNATURE_PROVIDER);
-        request.getAuthenticationProvider().add(ViispAuthenticationProvider.AUTH_ILTU_IDENTITY_CARD);
+        request.getAuthenticationProvider()
+                .add(ViispAuthenticationProvider.AUTH_SIGNATURE_PROVIDER);
+        request.getAuthenticationProvider()
+                .add(ViispAuthenticationProvider.AUTH_ILTU_IDENTITY_CARD);
 
         // Add authentication attributes
         request.getAuthenticationAttribute().add(ViispAuthenticationAttribute.LT_PERSONAL_CODE);
         request.getAuthenticationAttribute().add(ViispAuthenticationAttribute.LT_COMPANY_CODE);
-        request.getAuthenticationAttribute().add(ViispAuthenticationAttribute.LT_GOVERNMENT_EMPLOYEE_CODE);
+        request.getAuthenticationAttribute()
+                .add(ViispAuthenticationAttribute.LT_GOVERNMENT_EMPLOYEE_CODE);
         request.getAuthenticationAttribute().add(ViispAuthenticationAttribute.EIDAS_EID);
         request.getAuthenticationAttribute().add(ViispAuthenticationAttribute.LOGIN);
         request.getAuthenticationAttribute().add(ViispAuthenticationAttribute.ILTU_PERSONAL_CODE);
@@ -212,12 +258,15 @@ public class ViispXMLClient {
         request.getUserInformation().add(ViispUserInformation.PROXY_SOURCE);
 
         // Add proxy authentication attributes
-        request.getProxyAuthenticationAttribute().add(ViispAuthenticationAttribute.LT_PERSONAL_CODE);
+        request.getProxyAuthenticationAttribute()
+                .add(ViispAuthenticationAttribute.LT_PERSONAL_CODE);
         request.getProxyAuthenticationAttribute().add(ViispAuthenticationAttribute.LT_COMPANY_CODE);
-        request.getProxyAuthenticationAttribute().add(ViispAuthenticationAttribute.LT_GOVERNMENT_EMPLOYEE_CODE);
+        request.getProxyAuthenticationAttribute()
+                .add(ViispAuthenticationAttribute.LT_GOVERNMENT_EMPLOYEE_CODE);
         request.getProxyAuthenticationAttribute().add(ViispAuthenticationAttribute.EIDAS_EID);
         request.getProxyAuthenticationAttribute().add(ViispAuthenticationAttribute.LOGIN);
-        request.getProxyAuthenticationAttribute().add(ViispAuthenticationAttribute.ILTU_PERSONAL_CODE);
+        request.getProxyAuthenticationAttribute()
+                .add(ViispAuthenticationAttribute.ILTU_PERSONAL_CODE);
 
         request.getProxyUserInformation().add(ViispUserInformation.ID);
         request.getUserInformation().add(ViispUserInformation.FIRST_NAME);
@@ -233,14 +282,7 @@ public class ViispXMLClient {
         return getSignedXml(doc.getFirstChild(), "#" + request.getId());
     }
 
-    public String requestAuthenticationTicket(String callbackUrl, String serviceId, boolean isTestMode) throws Exception {
-        String authRequest = buildAuthRequest(serviceId, callbackUrl);
-        LOG.info(authRequest); // TODO: remove after testing
-        String ticketData = sendAuthRequest(authRequest, isTestMode);
-        return parseTicketFromXml(ticketData);
-    }
-
-    public ViispUserInfo getUserInfo(String ticket) throws Exception {
+    private String buildAuthDataRequest(String ticket) throws Exception {
         ViispAuthenticationDataRequest dataRequest = new ViispAuthenticationDataRequest();
         dataRequest.setId(SIGNED_NODE_ID);
         dataRequest.setPid(config.getServiceId() != null ? config.getServiceId() : TEST_PID);
@@ -250,17 +292,21 @@ public class ViispXMLClient {
         Document doc = (Document) marshal(dataRequest);
         setIdAttribute(doc.getChildNodes().item(0));
 
-        String xml = getSignedXml(doc.getFirstChild(), "#" + dataRequest.getId());
+        return getSignedXml(doc.getFirstChild(), "#" + dataRequest.getId());
+    }
 
-        // Mock user info for now - in production would parse VIISP response
-        ViispUserInfo userInfo = new ViispUserInfo();
-        userInfo.setPersonalCode("38001010000");
-        userInfo.setFirstName("Test");
-        userInfo.setLastName("User");
-        userInfo.setEmail("test@example.com");
-        userInfo.setAuthProvider("auth.lt.bank");
+    public String requestAuthenticationTicket(
+            String callbackUrl, String serviceId, boolean isTestMode) throws Exception {
+        String authRequest = buildAuthRequest(serviceId, callbackUrl);
+        String ticketData = sendAuthRequest(authRequest, isTestMode);
+        return parseTicketFromXml(ticketData);
+    }
 
-        return userInfo;
+    public ViispUserInfo getUserInfo(String ticket, boolean isTestMode) throws Exception {
+        String authDataRequest = buildAuthDataRequest(ticket);
+        LOG.info("Auth data request content: {}", authDataRequest);
+        String authDataResponse = sendAuthDataRequest(authDataRequest, isTestMode);
+        return parseUserDataFromXml(authDataResponse);
     }
 
     private Node marshal(Object data) throws Exception {
@@ -278,38 +324,134 @@ public class ViispXMLClient {
         // Add namespace declarations to the root element
         Element rootElement = document.getDocumentElement();
         rootElement.setAttributeNS(
-                "http://www.w3.org/2000/xmlns/",
-                "xmlns:ns2",
-                "http://www.w3.org/2000/09/xmldsig#"
-        );
+                "http://www.w3.org/2000/xmlns/", "xmlns:ns2", "http://www.w3.org/2000/09/xmldsig#");
 
         rootElement.setAttributeNS(
                 "http://www.w3.org/2000/xmlns/",
                 "xmlns:ns3",
-                "http://www.w3.org/2001/10/xml-exc-c14n#"
-        );
+                "http://www.w3.org/2001/10/xml-exc-c14n#");
         return document;
     }
 
-    private static String parseTicketFromXml(String xmlContent) throws
-            ParserConfigurationException,
-            IOException,
-            SAXException {
+    private static String parseTicketFromXml(String xmlContent)
+            throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
-        LOG.info("Ticket data: {}", xmlContent); // TODO: remove after testing
+
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
 
-        NodeList ticketNodes = document.getElementsByTagNameNS(
-                "http://www.epaslaugos.lt/services/authentication",
-                "ticket"
-        );
+        NodeList ticketNodes =
+                document.getElementsByTagNameNS(
+                        "http://www.epaslaugos.lt/services/authentication", "ticket");
         if (ticketNodes.getLength() > 0) {
             return ticketNodes.item(0).getTextContent().trim();
         }
 
         return null;
+    }
+
+    private static ViispUserInfo parseUserDataFromXml(String xmlContent)
+            throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        LOG.info("User data: {}", xmlContent); // TODO: remove after testing
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
+
+        NodeList authenticationProviderNodes =
+                document.getElementsByTagNameNS(
+                        "http://www.epaslaugos.lt/services/authentication",
+                        "authenticationProvider");
+
+        ViispUserInfo userInfo = new ViispUserInfo();
+
+        // Extract authentication provider
+        if (authenticationProviderNodes.getLength() > 0) {
+            String authProvider = authenticationProviderNodes.item(0).getTextContent().trim();
+            userInfo.setAuthProvider(authProvider);
+        }
+
+        // Extract authentication attributes (lt-personal-code)
+        NodeList authAttributeNodes =
+                document.getElementsByTagNameNS(
+                        "http://www.epaslaugos.lt/services/authentication",
+                        "authenticationAttribute");
+
+        for (int i = 0; i < authAttributeNodes.getLength(); i++) {
+            Node attributeNode = authAttributeNodes.item(i);
+            NodeList children = attributeNode.getChildNodes();
+            String attributeType = null;
+            String attributeValue = null;
+
+            for (int j = 0; j < children.getLength(); j++) {
+                Node child = children.item(j);
+                if ("attribute".equals(child.getLocalName())
+                        && "http://www.epaslaugos.lt/services/authentication"
+                                .equals(child.getNamespaceURI())) {
+                    attributeType = child.getTextContent().trim();
+                } else if ("value".equals(child.getLocalName())
+                        && "http://www.epaslaugos.lt/services/authentication"
+                                .equals(child.getNamespaceURI())) {
+                    attributeValue = child.getTextContent().trim();
+                }
+            }
+
+            if ("lt-personal-code".equals(attributeType) && attributeValue != null) {
+                userInfo.setPersonalCode(attributeValue);
+            }
+        }
+
+        // Extract user information (firstName, lastName, email)
+        NodeList userInformationNodes =
+                document.getElementsByTagNameNS(
+                        "http://www.epaslaugos.lt/services/authentication", "userInformation");
+
+        for (int i = 0; i < userInformationNodes.getLength(); i++) {
+            Node userInfoNode = userInformationNodes.item(i);
+            NodeList children = userInfoNode.getChildNodes();
+            String informationType = null;
+            String informationValue = null;
+
+            for (int j = 0; j < children.getLength(); j++) {
+                Node child = children.item(j);
+                if ("information".equals(child.getLocalName())
+                        && "http://www.epaslaugos.lt/services/authentication"
+                                .equals(child.getNamespaceURI())) {
+                    informationType = child.getTextContent().trim();
+                } else if ("value".equals(child.getLocalName())
+                        && "http://www.epaslaugos.lt/services/authentication"
+                                .equals(child.getNamespaceURI())) {
+                    // Extract stringValue from the value node
+                    NodeList valueChildren = child.getChildNodes();
+                    for (int k = 0; k < valueChildren.getLength(); k++) {
+                        Node valueChild = valueChildren.item(k);
+                        if ("stringValue".equals(valueChild.getLocalName())
+                                && "http://www.epaslaugos.lt/services/authentication"
+                                        .equals(valueChild.getNamespaceURI())) {
+                            informationValue = valueChild.getTextContent().trim();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (informationType != null && informationValue != null) {
+                switch (informationType) {
+                    case "firstName":
+                        userInfo.setFirstName(informationValue);
+                        break;
+                    case "lastName":
+                        userInfo.setLastName(informationValue);
+                        break;
+                    case "email":
+                        userInfo.setEmail(informationValue);
+                        break;
+                }
+            }
+        }
+
+        return userInfo;
     }
 
     private String getSignedXml(Node node, String referenceUri) throws Exception {
@@ -335,20 +477,18 @@ public class ViispXMLClient {
         prefixList.add(node.getPrefix());
         C14NMethodParameterSpec spec = new ExcC14NParameterSpec(prefixList);
         List<Transform> transforms = new ArrayList<>();
-        transforms.add(fac.newTransform(CanonicalizationMethod.ENVELOPED, (TransformParameterSpec) null));
+        transforms.add(
+                fac.newTransform(CanonicalizationMethod.ENVELOPED, (TransformParameterSpec) null));
         transforms.add(fac.newTransform(CanonicalizationMethod.EXCLUSIVE, spec));
 
-        Reference ref = fac.newReference(uri, fac.newDigestMethod(
-                        DigestMethod.SHA1, null),
-                transforms,
-                null,
-                null
-        );
-        SignedInfo si = fac.newSignedInfo(
-                fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, spec),
-                fac.newSignatureMethod(SignatureMethod.RSA_SHA1, null),
-                Collections.singletonList(ref)
-        );
+        Reference ref =
+                fac.newReference(
+                        uri, fac.newDigestMethod(DigestMethod.SHA1, null), transforms, null, null);
+        SignedInfo si =
+                fac.newSignedInfo(
+                        fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, spec),
+                        fac.newSignatureMethod(SignatureMethod.RSA_SHA1, null),
+                        Collections.singletonList(ref));
 
         KeyInfoFactory kif = fac.getKeyInfoFactory();
         KeyValue kv = kif.newKeyValue(publicKey);

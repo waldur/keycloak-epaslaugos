@@ -97,11 +97,18 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk
 mvn clean package
 ```
 
+### Development
+
+```bash
+# Install git pre-push hook for the spotless linter and formatter
+mvn spotless:install-git-pre-push-hook
+```
+
 ### Deployment
 
 1. Copy the built JAR to Keycloak providers directory:
    ```bash
-   cp target/keycloak-epaslaugos-1.0.0.jar $KEYCLOAK_HOME/providers/
+   cp target/waldur-keycloak-epaslaugos-1.0.0-jar-with-dependencies.jar $KEYCLOAK_HOME/providers/
    ```
 
 2. Restart Keycloak or run build command:

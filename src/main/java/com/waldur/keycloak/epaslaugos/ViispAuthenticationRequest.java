@@ -1,48 +1,68 @@
 package com.waldur.keycloak.epaslaugos;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import java.util.ArrayList;
+import java.util.List;
 
-@JacksonXmlRootElement(localName = "authenticationRequest", namespace = "http://www.epaslaugos.lt/services/authentication")
+@JacksonXmlRootElement(
+        localName = "authenticationRequest",
+        namespace = "http://www.epaslaugos.lt/services/authentication")
 public class ViispAuthenticationRequest {
 
     @JacksonXmlProperty(isAttribute = true, localName = "id")
     protected String id;
-    
-    @JacksonXmlProperty(localName = "pid", namespace = "http://www.epaslaugos.lt/services/authentication")
+
+    @JacksonXmlProperty(
+            localName = "pid",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected String pid;
 
-    @JacksonXmlProperty(localName = "serviceTarget", namespace = "http://www.epaslaugos.lt/services/authentication")
+    @JacksonXmlProperty(
+            localName = "serviceTarget",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected ViispServiceTarget serviceTarget;
 
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "authenticationProvider", namespace = "http://www.epaslaugos.lt/services/authentication")
+    @JacksonXmlProperty(
+            localName = "authenticationProvider",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected List<ViispAuthenticationProvider> authenticationProvider;
-    
+
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "authenticationAttribute", namespace = "http://www.epaslaugos.lt/services/authentication")
+    @JacksonXmlProperty(
+            localName = "authenticationAttribute",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected List<ViispAuthenticationAttribute> authenticationAttribute;
-    
+
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "userInformation", namespace = "http://www.epaslaugos.lt/services/authentication")
+    @JacksonXmlProperty(
+            localName = "userInformation",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected List<ViispUserInformation> userInformation;
-    
+
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "proxyAuthenticationAttribute", namespace = "http://www.epaslaugos.lt/services/authentication")
+    @JacksonXmlProperty(
+            localName = "proxyAuthenticationAttribute",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected List<ViispAuthenticationAttribute> proxyAuthenticationAttribute;
-    
+
     @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "proxyUserInformation", namespace = "http://www.epaslaugos.lt/services/authentication")
+    @JacksonXmlProperty(
+            localName = "proxyUserInformation",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected List<ViispUserInformation> proxyUserInformation;
 
-    //    @JacksonXmlProperty(localName = "postbackUrl", namespace = "http://www.epaslaugos.lt/services/authentication")
-//    protected String postbackUrl;
-//
-//    @JacksonXmlProperty(localName = "customData", namespace = "http://www.epaslaugos.lt/services/authentication")
-//    protected String customData;
+    @JacksonXmlProperty(
+            localName = "postbackUrl",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
+    protected String postbackUrl;
+
+    @JacksonXmlProperty(
+            localName = "customData",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
+    protected String customData;
 
     public String getId() {
         return id;
@@ -60,21 +80,21 @@ public class ViispAuthenticationRequest {
         this.pid = value;
     }
 
-//    public String getPostbackUrl() {
-//        return postbackUrl;
-//    }
-//
-//    public void setPostbackUrl(String value) {
-//        this.postbackUrl = value;
-//    }
-//
-//    public String getCustomData() {
-//        return customData;
-//    }
-//
-//    public void setCustomData(String value) {
-//        this.customData = value;
-//    }
+    public String getPostbackUrl() {
+        return postbackUrl;
+    }
+
+    public void setPostbackUrl(String value) {
+        this.postbackUrl = value;
+    }
+
+    public String getCustomData() {
+        return customData;
+    }
+
+    public void setCustomData(String value) {
+        this.customData = value;
+    }
 
     public List<ViispAuthenticationAttribute> getAuthenticationAttribute() {
         if (authenticationAttribute == null) {
