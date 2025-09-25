@@ -26,216 +26,192 @@ import org.slf4j.LoggerFactory;
 
 public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProviderModel> {
 
-    public static final String PROVIDER_ID = "viisp";
+	public static final String PROVIDER_ID = "viisp";
 
-    private final ViispXMLClient xmlClient;
+	private final ViispXMLClient xmlClient;
 
-    private static final Logger LOG = LoggerFactory.getLogger(ViispIdentityProvider.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ViispIdentityProvider.class);
 
-    public ViispIdentityProvider(KeycloakSession session, ViispIdentityProviderConfig config) {
-        super(session, config);
-        this.xmlClient = new ViispXMLClient(config);
-    }
+	public ViispIdentityProvider(KeycloakSession session, ViispIdentityProviderConfig config) {
+		super(session, config);
+		this.xmlClient = new ViispXMLClient(config);
+	}
 
-    @Override
-    public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-        return new ViispEndpoint(this, callback, realm, event);
-    }
+	@Override
+	public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
+		return new ViispEndpoint(this, callback, realm, event);
+	}
 
-    @Override
-    public Response performLogin(AuthenticationRequest request) {
-        LOG.info("Started login process using VIISP IDP");
-        if (request == null) {
-            throw new IdentityBrokerException("Authentication request cannot be null");
-        }
+	@Override
+	public Response performLogin(AuthenticationRequest request) {
+		LOG.info("Started login process using VIISP IDP");
+		if (request == null) {
+			throw new IdentityBrokerException("Authentication request cannot be null");
+		}
 
-        AuthenticationSessionModel authSession = request.getAuthenticationSession();
-        if (authSession == null) {
-            throw new IdentityBrokerException("Authentication session is required");
-        }
+		AuthenticationSessionModel authSession = request.getAuthenticationSession();
+		if (authSession == null) {
+			throw new IdentityBrokerException("Authentication session is required");
+		}
 
-        try {
-            // Store CSRF protection state in authentication session
-            String viispState = UUID.randomUUID().toString();
-            authSession.setAuthNote("VIISP_STATE", viispState);
+		try {
+			// Store CSRF protection state in authentication session
+			String viispState = UUID.randomUUID().toString();
+			authSession.setAuthNote("VIISP_STATE", viispState);
 
-            // Use the default redirect URL
-            String callbackUrl = request.getRedirectUri();
-            LOG.info("Callback URL: {}", callbackUrl);
+			// Use the default redirect URL
+			String callbackUrl = request.getRedirectUri();
+			LOG.info("Callback URL: {}", callbackUrl);
 
-            // Initialize and validate VIISP configuration
-            ViispIdentityProviderConfig viispConfig = new ViispIdentityProviderConfig(getConfig());
-            LOG.info(
-                    "Viisp Identity Provider Config: {}",
-                    viispConfig.getConfig()); // TODO: remove after testing
-            validateConfig(viispConfig);
+			// Initialize and validate VIISP configuration
+			ViispIdentityProviderConfig viispConfig = new ViispIdentityProviderConfig(getConfig());
+			LOG.info("Viisp Identity Provider Config: {}", viispConfig.getConfig()); // TODO: remove after testing
+			validateConfig(viispConfig);
 
-            // Request authentication ticket from VIISP
-            String ticketId =
-                    xmlClient.requestAuthenticationTicket(
-                            callbackUrl, viispConfig.getServiceId(), viispConfig.isTestMode());
-            if (ticketId == null || ticketId.trim().isEmpty()) {
-                throw new IdentityBrokerException(
-                        "Failed to obtain authentication ticket from VIISP");
-            }
+			// Request authentication ticket from VIISP
+			String ticketId = xmlClient.requestAuthenticationTicket(callbackUrl, viispConfig.getServiceId(),
+					viispConfig.isTestMode());
+			if (ticketId == null || ticketId.trim().isEmpty()) {
+				throw new IdentityBrokerException("Failed to obtain authentication ticket from VIISP");
+			}
 
-            // Submit the ticket and get redirect response
-            HttpResponse<String> ticketResponse =
-                    xmlClient.submitAuthenticationTicket(ticketId, viispConfig.isTestMode());
+			// Submit the ticket and get redirect response
+			HttpResponse<String> ticketResponse = xmlClient.submitAuthenticationTicket(ticketId,
+					viispConfig.isTestMode());
 
-            // Build and return redirect response to VIISP
-            return buildLoginResponse(ticketResponse);
-        } catch (IllegalArgumentException e) {
-            throw new IdentityBrokerException("Invalid VIISP configuration: " + e.getMessage(), e);
-        } catch (java.io.IOException | InterruptedException e) {
-            throw new IdentityBrokerException("Failed to communicate with VIISP service", e);
-        } catch (IdentityBrokerException e) {
-            // Re-throw IdentityBrokerException as-is
-            throw e;
-        } catch (Exception e) {
-            throw new IdentityBrokerException("Unexpected error during VIISP authentication", e);
-        }
-    }
+			// Build and return redirect response to VIISP
+			return buildLoginResponse(ticketResponse);
+		} catch (IllegalArgumentException e) {
+			throw new IdentityBrokerException("Invalid VIISP configuration: " + e.getMessage(), e);
+		} catch (java.io.IOException | InterruptedException e) {
+			throw new IdentityBrokerException("Failed to communicate with VIISP service", e);
+		} catch (IdentityBrokerException e) {
+			// Re-throw IdentityBrokerException as-is
+			throw e;
+		} catch (Exception e) {
+			throw new IdentityBrokerException("Unexpected error during VIISP authentication", e);
+		}
+	}
 
-    private void validateConfig(ViispIdentityProviderConfig config) {
-        if (config == null) {
-            throw new IllegalArgumentException("VIISP configuration cannot be null");
-        }
-        if (config.getServiceId() == null || config.getServiceId().trim().isEmpty()) {
-            throw new IllegalArgumentException("VIISP Service ID must be configured");
-        }
-    }
+	private void validateConfig(ViispIdentityProviderConfig config) {
+		if (config == null) {
+			throw new IllegalArgumentException("VIISP configuration cannot be null");
+		}
+		if (config.getServiceId() == null || config.getServiceId().trim().isEmpty()) {
+			throw new IllegalArgumentException("VIISP Service ID must be configured");
+		}
+	}
 
-    private Response buildLoginResponse(HttpResponse<String> ticketResponse) {
-        if (ticketResponse == null) {
-            throw new IdentityBrokerException("Ticket response cannot be null");
-        }
+	private Response buildLoginResponse(HttpResponse<String> ticketResponse) {
+		if (ticketResponse == null) {
+			throw new IdentityBrokerException("Ticket response cannot be null");
+		}
 
-        // Extract location header from VIISP redirect response
-        String locationUrl =
-                ticketResponse
-                        .headers()
-                        .firstValue(HttpHeaders.LOCATION)
-                        .orElseThrow(
-                                () ->
-                                        new IdentityBrokerException(
-                                                "Missing Location header in VIISP ticket response"));
+		// Extract location header from VIISP redirect response
+		String locationUrl = ticketResponse.headers().firstValue(HttpHeaders.LOCATION)
+				.orElseThrow(() -> new IdentityBrokerException("Missing Location header in VIISP ticket response"));
 
-        // Build response with proper redirect
-        Response.ResponseBuilder responseBuilder =
-                Response.seeOther(UriBuilder.fromUri(locationUrl).build());
+		// Build response with proper redirect
+		Response.ResponseBuilder responseBuilder = Response.seeOther(UriBuilder.fromUri(locationUrl).build());
 
-        // Preserve authentication cookies from VIISP
-        var cookies = ticketResponse.headers().allValues(HttpHeaders.SET_COOKIE);
-        if (!cookies.isEmpty()) {
-            // Each cookie needs its own Set-Cookie header (HTTP standard)
-            for (String cookie : cookies) {
-                responseBuilder.header(HttpHeaders.SET_COOKIE, cookie);
-            }
-        }
+		// Preserve authentication cookies from VIISP
+		var cookies = ticketResponse.headers().allValues(HttpHeaders.SET_COOKIE);
+		if (!cookies.isEmpty()) {
+			// Each cookie needs its own Set-Cookie header (HTTP standard)
+			for (String cookie : cookies) {
+				responseBuilder.header(HttpHeaders.SET_COOKIE, cookie);
+			}
+		}
 
-        return responseBuilder.build();
-    }
+		return responseBuilder.build();
+	}
 
-    @Override
-    public Response keycloakInitiatedBrowserLogout(
-            KeycloakSession session,
-            UserSessionModel userSession,
-            UriInfo uriInfo,
-            RealmModel realm) {
-        // VIISP doesn't support remote logout
-        return null;
-    }
+	@Override
+	public Response keycloakInitiatedBrowserLogout(KeycloakSession session, UserSessionModel userSession,
+			UriInfo uriInfo, RealmModel realm) {
+		// VIISP doesn't support remote logout
+		return null;
+	}
 
-    @Override
-    public Response export(UriInfo uriInfo, RealmModel realm, String format) {
-        // No metadata export for VIISP
-        return null;
-    }
+	@Override
+	public Response export(UriInfo uriInfo, RealmModel realm, String format) {
+		// No metadata export for VIISP
+		return null;
+	}
 
-    @Override
-    public void backchannelLogout(
-            KeycloakSession session,
-            UserSessionModel userSession,
-            UriInfo uriInfo,
-            RealmModel realm) {
-        // VIISP doesn't support backchannel logout
-    }
+	@Override
+	public void backchannelLogout(KeycloakSession session, UserSessionModel userSession, UriInfo uriInfo,
+			RealmModel realm) {
+		// VIISP doesn't support backchannel logout
+	}
 
-    @Override
-    public Response retrieveToken(KeycloakSession session, FederatedIdentityModel identity) {
-        // VIISP doesn't support token retrieval
-        return null;
-    }
+	@Override
+	public Response retrieveToken(KeycloakSession session, FederatedIdentityModel identity) {
+		// VIISP doesn't support token retrieval
+		return null;
+	}
 
-    // VIISP Callback Endpoint
-    protected static class ViispEndpoint {
-        private final ViispIdentityProvider provider;
-        private final AuthenticationCallback callback;
-        private final RealmModel realm;
-        private final EventBuilder event;
-        private final ViispXMLClient xmlClient;
+	// VIISP Callback Endpoint
+	protected static class ViispEndpoint {
+		private final ViispIdentityProvider provider;
+		private final AuthenticationCallback callback;
+		private final RealmModel realm;
+		private final EventBuilder event;
+		private final ViispXMLClient xmlClient;
 
-        public ViispEndpoint(
-                ViispIdentityProvider provider,
-                AuthenticationCallback callback,
-                RealmModel realm,
-                EventBuilder event) {
-            this.provider = provider;
-            this.callback = callback;
-            this.realm = realm;
-            this.event = event;
-            this.xmlClient = provider.xmlClient;
-        }
+		public ViispEndpoint(ViispIdentityProvider provider, AuthenticationCallback callback, RealmModel realm,
+				EventBuilder event) {
+			this.provider = provider;
+			this.callback = callback;
+			this.realm = realm;
+			this.event = event;
+			this.xmlClient = provider.xmlClient;
+		}
 
-        @POST
-        @Path("/")
-        public Response handleCallback(
-                @FormParam("ticket") String ticket, @Context HttpHeaders headers) {
-            LOG.info("Ticket data after login: {}", ticket); // TODO: remove after testing
-            if (ticket == null || ticket.isEmpty()) {
-                return callback.error(
-                        provider.getConfig(), "No authentication ticket received from VIISP");
-            }
+		@POST
+		@Path("/")
+		public Response handleCallback(@FormParam("ticket") String ticket, @Context HttpHeaders headers) {
+			LOG.info("Ticket data after login: {}", ticket); // TODO: remove after testing
+			if (ticket == null || ticket.isEmpty()) {
+				return callback.error(provider.getConfig(), "No authentication ticket received from VIISP");
+			}
 
-            try {
-                // Retrieve user identity from VIISP using ticket
-                ViispIdentityProviderConfig viispConfig =
-                        new ViispIdentityProviderConfig(provider.getConfig());
-                ViispUserInfo userInfo = xmlClient.getUserInfo(ticket, viispConfig.isTestMode());
+			try {
+				// Retrieve user identity from VIISP using ticket
+				ViispIdentityProviderConfig viispConfig = new ViispIdentityProviderConfig(provider.getConfig());
+				ViispUserInfo userInfo = xmlClient.getUserInfo(ticket, viispConfig.isTestMode());
 
-                // Create brokered identity context
-                BrokeredIdentityContext identity = createBrokeredIdentity(userInfo);
+				// Create brokered identity context
+				BrokeredIdentityContext identity = createBrokeredIdentity(userInfo);
 
-                return callback.authenticated(identity);
+				return callback.authenticated(identity);
 
-            } catch (Exception e) {
-                event.error("VIISP_AUTHENTICATION_FAILED");
-                return callback.error(
-                        provider.getConfig(),
-                        "Failed to process VIISP authentication: " + e.getMessage());
-            }
-        }
+			} catch (Exception e) {
+				event.error("VIISP_AUTHENTICATION_FAILED");
+				return callback.error(provider.getConfig(),
+						"Failed to process VIISP authentication: " + e.getMessage());
+			}
+		}
 
-        private BrokeredIdentityContext createBrokeredIdentity(ViispUserInfo userInfo) {
-            BrokeredIdentityContext identity =
-                    new BrokeredIdentityContext(userInfo.getPersonalCode(), provider.getConfig());
+		private BrokeredIdentityContext createBrokeredIdentity(ViispUserInfo userInfo) {
+			BrokeredIdentityContext identity = new BrokeredIdentityContext(userInfo.getPersonalCode(),
+					provider.getConfig());
 
-            // Set basic identity information
-            identity.setUsername(userInfo.getPersonalCode());
-            identity.setEmail(userInfo.getEmail());
-            identity.setFirstName(userInfo.getFirstName());
-            identity.setLastName(userInfo.getLastName());
-            identity.setBrokerUserId(userInfo.getPersonalCode());
+			// Set basic identity information
+			identity.setUsername(userInfo.getPersonalCode());
+			identity.setEmail(userInfo.getEmail());
+			identity.setFirstName(userInfo.getFirstName());
+			identity.setLastName(userInfo.getLastName());
+			identity.setBrokerUserId(userInfo.getPersonalCode());
 
-            // Add VIISP-specific custom attributes
-            identity.setUserAttribute("lt-personal-code", userInfo.getPersonalCode());
-            identity.setUserAttribute("authentication-provider", userInfo.getAuthProvider());
+			// Add VIISP-specific custom attributes
+			identity.setUserAttribute("lt-personal-code", userInfo.getPersonalCode());
+			identity.setUserAttribute("authentication-provider", userInfo.getAuthProvider());
 
-            // Store authentication context
-            identity.setIdp(provider);
+			// Store authentication context
+			identity.setIdp(provider);
 
-            return identity;
-        }
-    }
+			return identity;
+		}
+	}
 }
