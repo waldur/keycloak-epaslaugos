@@ -1,14 +1,13 @@
 package com.waldur.keycloak.epaslaugos;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.provider.ProviderConfigProperty;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ViispIdentityProviderFactory 
+public class ViispIdentityProviderFactory
         extends AbstractIdentityProviderFactory<ViispIdentityProvider> {
 
     public static final String PROVIDER_ID = "VIISP";

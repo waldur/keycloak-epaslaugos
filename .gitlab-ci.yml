@@ -1,0 +1,39 @@
+Test compile the project (Java 21):
+  image: "registry.hpc.ut.ee/mirror/library/maven:3.9.11-eclipse-temurin-21-alpine"
+  stage: test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - mvn compile
+
+Maven Deploy latest JAR (Java 21):
+  image: "registry.hpc.ut.ee/mirror/library/maven:3.9.11-eclipse-temurin-21-alpine"
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"'
+  script:
+    - mvn deploy -Drevision=latest -s ci_settings.xml
+
+Release JAR (Java 21):
+  image: "registry.hpc.ut.ee/mirror/library/maven:3.9.11-eclipse-temurin-21-alpine"
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - mvn --batch-mode --errors --fail-at-end --show-version -Drevision=${CI_COMMIT_TAG} clean install
+    - |
+      RELEASE_DATA="{\"tag_name\": \"$CI_COMMIT_TAG\", \"name\": \"$CI_COMMIT_TAG\"}"
+      UPLOAD_URL=$(curl -sH "Authorization: token $GITHUB_JENKINS_TOKEN" -X POST "https://api.github.com/repos/waldur/$CI_PROJECT_NAME/releases" -d "$RELEASE_DATA" | jq -r '.upload_url' | cut -d "{" -f 1)
+      curl -H "Authorization: token $GITHUB_JENKINS_TOKEN" -H "Content-Type: application/octet-stream" --data-binary "@target/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.jar" "$UPLOAD_URL?name=${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.jar"
+  artifacts:
+    paths:
+      - "target/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.jar"
+    expire_in: never
+  release:
+    tag_name: "$CI_COMMIT_TAG"
+    description: "$CI_COMMIT_TAG_MESSAGE"
+    assets:
+      links:
+      - name: "JAR"
+        url: "https://code.opennodecloud.com/$CI_PROJECT_PATH/-/jobs/$CI_JOB_ID/artifacts/download"

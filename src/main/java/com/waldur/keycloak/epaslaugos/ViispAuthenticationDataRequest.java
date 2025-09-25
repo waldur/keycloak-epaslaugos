@@ -3,19 +3,27 @@ package com.waldur.keycloak.epaslaugos;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@JacksonXmlRootElement(localName = "authenticationDataRequest", namespace = "http://www.epaslaugos.lt/services/authentication")
+@JacksonXmlRootElement(
+        localName = "authenticationDataRequest",
+        namespace = "http://www.epaslaugos.lt/services/authentication")
 public class ViispAuthenticationDataRequest {
 
     @JacksonXmlProperty(isAttribute = true, localName = "id")
     protected String id;
-    
-    @JacksonXmlProperty(localName = "pid", namespace = "http://www.epaslaugos.lt/services/authentication")
+
+    @JacksonXmlProperty(
+            localName = "pid",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected String pid;
-    
-    @JacksonXmlProperty(localName = "ticket", namespace = "http://www.epaslaugos.lt/services/authentication")
+
+    @JacksonXmlProperty(
+            localName = "ticket",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected String ticket;
-    
-    @JacksonXmlProperty(localName = "includeSourceData", namespace = "http://www.epaslaugos.lt/services/authentication")
+
+    @JacksonXmlProperty(
+            localName = "includeSourceData",
+            namespace = "http://www.epaslaugos.lt/services/authentication")
     protected Boolean includeSourceData;
 
     public String getId() {
