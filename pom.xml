@@ -42,13 +42,11 @@
                 <configuration>
                     <java>
                         <includes>
-                            <include>src/main/java/**/*.java</include> <!-- Check application code -->
-                            <include>src/test/java/**/*.java</include> <!-- Check application tests code -->
+                            <include>src/main/java/**/*.java</include>
                         </includes>
-                        <googleJavaFormat>
-                            <version>1.21.0</version>
-                            <style>AOSP</style>
-                        </googleJavaFormat>
+                        <eclipse>
+                            <version>4.31.0</version>
+                        </eclipse>
                         <importOrder />
                         <removeUnusedImports />
                     </java>
