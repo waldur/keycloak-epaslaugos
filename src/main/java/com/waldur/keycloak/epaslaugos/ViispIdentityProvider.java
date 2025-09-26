@@ -3,12 +3,7 @@ package com.waldur.keycloak.epaslaugos;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriBuilder;
-import jakarta.ws.rs.core.UriInfo;
-import java.net.http.HttpResponse;
+import jakarta.ws.rs.core.*;
 import java.util.UUID;
 import org.keycloak.broker.provider.AbstractIdentityProvider;
 import org.keycloak.broker.provider.AuthenticationRequest;
@@ -75,12 +70,8 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
 				throw new IdentityBrokerException("Failed to obtain authentication ticket from VIISP");
 			}
 
-			// Submit the ticket and get redirect response
-			HttpResponse<String> ticketResponse = xmlClient.submitAuthenticationTicket(ticketId,
-					viispConfig.isTestMode());
-
-			// Build and return redirect response to VIISP
-			return buildLoginResponse(ticketResponse);
+			String ticketSubmitPage = createTicketSubmitPage(ticketId);
+			return Response.ok(ticketSubmitPage).type(MediaType.TEXT_HTML_TYPE).build();
 		} catch (IllegalArgumentException e) {
 			throw new IdentityBrokerException("Invalid VIISP configuration: " + e.getMessage(), e);
 		} catch (java.io.IOException | InterruptedException e) {
@@ -93,6 +84,24 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
 		}
 	}
 
+	private String createTicketSubmitPage(String ticketId) {
+		return String.format("<!DOCTYPE html>" + "<html><head>" + "<meta charset='utf-8'>"
+				+ "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+				+ "<title>Auth to VIISP</title>" + "<style>"
+				+ "body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f5f5f5; }"
+				+ ".container { text-align: center; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }"
+				+ ".btn { background-color: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }"
+				+ ".btn:hover { background-color: #0056b3; }" + "</style>"
+				+ "<script>window.onload=function(){document.forms['REQUEST'].submit();}</script>" + "</head>"
+				+ "<body>" + "<div class='container'>" + "<h2>Redirecting to VIISP...</h2>"
+				+ "<p>Please wait while we redirect you to the authentication service.</p>"
+				+ "<form name='REQUEST' method='post' action='https://test.epaslaugos.lt/portal/external/services/authentication/v2'>"
+				+ "<input type='hidden' name='ticketId' value='%s'/>" + "<noscript>"
+				+ "<p>JavaScript is disabled. Please click the button below to continue.</p>"
+				+ "<button type='submit' class='btn'>Continue to Login</button>" + "</noscript>" + "</form>" + "</div>"
+				+ "</body></html>", ticketId);
+	}
+
 	private void validateConfig(ViispIdentityProviderConfig config) {
 		if (config == null) {
 			throw new IllegalArgumentException("VIISP configuration cannot be null");
@@ -100,30 +109,6 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
 		if (config.getServiceId() == null || config.getServiceId().trim().isEmpty()) {
 			throw new IllegalArgumentException("VIISP Service ID must be configured");
 		}
-	}
-
-	private Response buildLoginResponse(HttpResponse<String> ticketResponse) {
-		if (ticketResponse == null) {
-			throw new IdentityBrokerException("Ticket response cannot be null");
-		}
-
-		// Extract location header from VIISP redirect response
-		String locationUrl = ticketResponse.headers().firstValue(HttpHeaders.LOCATION)
-				.orElseThrow(() -> new IdentityBrokerException("Missing Location header in VIISP ticket response"));
-
-		// Build response with proper redirect
-		Response.ResponseBuilder responseBuilder = Response.seeOther(UriBuilder.fromUri(locationUrl).build());
-
-		// Preserve authentication cookies from VIISP
-		var cookies = ticketResponse.headers().allValues(HttpHeaders.SET_COOKIE);
-		if (!cookies.isEmpty()) {
-			// Each cookie needs its own Set-Cookie header (HTTP standard)
-			for (String cookie : cookies) {
-				responseBuilder.header(HttpHeaders.SET_COOKIE, cookie);
-			}
-		}
-
-		return responseBuilder.build();
 	}
 
 	@Override

@@ -147,38 +147,6 @@ public class ViispXMLClient {
 		return response.body();
 	}
 
-	public HttpResponse<String> submitAuthenticationTicket(String ticketId, boolean isTestMode)
-			throws IOException, InterruptedException {
-		if (ticketId == null || ticketId.trim().isEmpty()) {
-			throw new IllegalArgumentException("Ticket ID cannot be null or empty");
-		}
-
-		String viispAuthUrl = isTestMode
-				? "https://test.epaslaugos.lt/portal/external/services/authentication/v2"
-				: "https://epaslaugos.lt/portal/external/services/authentication/v2";
-
-		LOG.info("Submitting authentication ticket {} to {}", ticketId, viispAuthUrl);
-		// Third-party provided format: form with dynamic action URL and ticket value
-		String soapBodyFormat = "<form name=\"REQUEST\" method=\"post\" action=\"%s\"><input type=\"hidden\" name=\"ticket\" value=\"%s\"/></form>\n";
-		String soapBody = String.format(soapBodyFormat, viispAuthUrl, ticketId.trim());
-
-		HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
-
-		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(viispAuthUrl))
-				.header("Content-Type", "text/xml; charset=utf-8").header("SOAPAction", "")
-				.POST(HttpRequest.BodyPublishers.ofString(soapBody)).build();
-
-		HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-		if (response.statusCode() != HttpStatus.SC_MOVED_TEMPORARILY) {
-			throw new RuntimeException(
-					String.format("VIISP ticket submission failed. Expected 302 redirect, got %d. Response: %s",
-							response.statusCode(), response.body()));
-		}
-
-		return response;
-	}
-
 	private String buildAuthRequest(String serviceId, String callbackUrl) throws Exception {
 		ViispAuthenticationRequest request = new ViispAuthenticationRequest();
 		request.setId(SIGNED_NODE_ID);
