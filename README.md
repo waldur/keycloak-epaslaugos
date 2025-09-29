@@ -125,7 +125,7 @@ mvn spotless:check
 
 1. Copy the built JAR to Keycloak providers directory:
    ```bash
-   cp target/waldur-keycloak-epaslaugos-1.0.0-jar-with-dependencies.jar $KEYCLOAK_HOME/providers/
+   cp target/keycloak-epaslaugos-1.0.0-jar-with-dependencies.jar $KEYCLOAK_HOME/providers/
    ```
 
 2. Restart Keycloak or run build command:

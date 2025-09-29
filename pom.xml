@@ -2,10 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.waldur.keycloak.epaslaugos</groupId>
-    <artifactId>waldur-keycloak-epaslaugos</artifactId>
+    <artifactId>keycloak-epaslaugos</artifactId>
     <packaging>jar</packaging>
     <version>${revision}</version>
-    <name>waldur-keycloak-epaslaugos</name>
+    <name>keycloak-epaslaugos</name>
     <properties>
         <keycloak.version>26.3.4</keycloak.version>
         <revision>1.0.0</revision>
