@@ -30,14 +30,3 @@ Release JAR (Java 21):
       echo ${UPLOAD_URL}
       ls target/
       curl -H "Authorization: token $GITHUB_JENKINS_TOKEN" -H "Content-Type: application/octet-stream" --data-binary "@target/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}-jar-with-dependencies.jar" "$UPLOAD_URL?name=${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.jar"
-  artifacts:
-    paths:
-      - "target/${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.jar"
-    expire_in: never
-  release:
-    tag_name: "$CI_COMMIT_TAG"
-    description: "$CI_COMMIT_TAG_MESSAGE"
-    assets:
-      links:
-      - name: "JAR"
-        url: "https://code.opennodecloud.com/$CI_PROJECT_PATH/-/jobs/$CI_JOB_ID/artifacts/download"
