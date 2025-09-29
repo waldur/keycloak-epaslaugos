@@ -44,9 +44,10 @@
                         <includes>
                             <include>src/main/java/**/*.java</include>
                         </includes>
-                        <eclipse>
-                            <version>4.31.0</version>
-                        </eclipse>
+                        <googleJavaFormat>
+                            <version>1.21.0</version>
+                            <style>AOSP</style>
+                        </googleJavaFormat>
                         <importOrder />
                         <removeUnusedImports />
                     </java>
