@@ -147,12 +147,12 @@ public class ViispXMLClient {
 		return response.body();
 	}
 
-	private String buildAuthRequest(String serviceId, String callbackUrl) throws Exception {
+	private String buildAuthRequest(String serviceId, String callbackUrl, String customData) throws Exception {
 		ViispAuthenticationRequest request = new ViispAuthenticationRequest();
 		request.setId(SIGNED_NODE_ID);
 		request.setPid(serviceId != null ? serviceId : TEST_PID);
 		request.setPostbackUrl(callbackUrl);
-		request.setCustomData(UUID.randomUUID().toString()); // TODO: cache this value for callback
+		request.setCustomData(customData);
 
 		// Set service target
 		request.setServiceTarget(ViispServiceTarget.CITIZEN);
@@ -223,9 +223,9 @@ public class ViispXMLClient {
 		return getSignedXml(doc.getFirstChild(), "#" + dataRequest.getId());
 	}
 
-	public String requestAuthenticationTicket(String callbackUrl, String serviceId, boolean isTestMode)
-			throws Exception {
-		String authRequest = buildAuthRequest(serviceId, callbackUrl);
+	public String requestAuthenticationTicket(String callbackUrl, String serviceId, boolean isTestMode,
+			String customData) throws Exception {
+		String authRequest = buildAuthRequest(serviceId, callbackUrl, customData);
 		String ticketData = sendAuthRequest(authRequest, isTestMode);
 		return parseTicketFromXml(ticketData);
 	}
@@ -279,7 +279,6 @@ public class ViispXMLClient {
 			throws ParserConfigurationException, IOException, SAXException {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
-		LOG.info("User data: {}", xmlContent); // TODO: remove after testing
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
 
@@ -365,7 +364,6 @@ public class ViispXMLClient {
 				}
 			}
 		}
-
 		return userInfo;
 	}
 

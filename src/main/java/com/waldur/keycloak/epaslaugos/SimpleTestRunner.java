@@ -1,5 +1,7 @@
 package com.waldur.keycloak.epaslaugos;
 
+import java.util.UUID;
+
 public class SimpleTestRunner {
 
 	public static void main(String[] args) {
@@ -15,7 +17,8 @@ public class SimpleTestRunner {
 			System.out.println("✓ ViispXMLClient created successfully");
 
 			// Test ticket generation
-			String ticket = client.requestAuthenticationTicket("http://test-callback", "VSID000000000113", true);
+			String ticket = client.requestAuthenticationTicket("http://test-callback", "VSID000000000113", true,
+					UUID.randomUUID().toString());
 			System.out.println("✓ Generated authentication ticket: " + ticket);
 
 			// Test user info retrieval

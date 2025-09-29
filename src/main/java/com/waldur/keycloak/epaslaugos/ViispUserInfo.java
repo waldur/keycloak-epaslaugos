@@ -77,4 +77,12 @@ public class ViispUserInfo {
 	public void setCompanyName(String companyName) {
 		this.companyName = companyName;
 	}
+
+	@Override
+	public String toString() {
+		return "ViispUserInfo{" + "personalCode='" + personalCode + '\'' + ", firstName='" + firstName + '\''
+				+ ", lastName='" + lastName + '\'' + ", email='" + email + '\'' + ", companyCode='" + companyCode + '\''
+				+ ", authProvider='" + authProvider + '\'' + ", birthday='" + birthday + '\'' + ", companyName='"
+				+ companyName + '\'' + '}';
+	}
 }
