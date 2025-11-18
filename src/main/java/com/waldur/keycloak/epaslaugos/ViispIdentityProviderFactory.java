@@ -32,6 +32,25 @@ public class ViispIdentityProviderFactory
         testModeProperty.setRequired(true);
         testModeProperty.setDefaultValue("false");
         configProperties.add(testModeProperty);
+
+        ProviderConfigProperty keystorePathProperty = new ProviderConfigProperty();
+        keystorePathProperty.setName("keystorePath");
+        keystorePathProperty.setLabel("Keystore Path");
+        keystorePathProperty.setType(ProviderConfigProperty.STRING_TYPE);
+        keystorePathProperty.setHelpText(
+                "Path to the keystore file. If starts with / the file is loaded from classpath, otherwise - from the filesystem.");
+        keystorePathProperty.setRequired(true);
+        keystorePathProperty.setDefaultValue("/keystore-test.jks");
+        configProperties.add(keystorePathProperty);
+
+        ProviderConfigProperty keystorePasswordProperty = new ProviderConfigProperty();
+        keystorePasswordProperty.setName("keystorePassword");
+        keystorePasswordProperty.setLabel("Keystore Password");
+        keystorePasswordProperty.setType(ProviderConfigProperty.PASSWORD);
+        keystorePasswordProperty.setHelpText("Password for the keystore.");
+        keystorePasswordProperty.setRequired(true);
+        keystorePasswordProperty.setDefaultValue("viisp-test");
+        configProperties.add(keystorePasswordProperty);
     }
 
     @Override
