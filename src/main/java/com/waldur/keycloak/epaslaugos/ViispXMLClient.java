@@ -87,8 +87,9 @@ public class ViispXMLClient {
                     getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
         } else {
             // Load from file system
+            String keyStorePathFull = "/" + keystorePath;
             keyStore.load(
-                    FileUtils.openInputStream(FileUtils.getFile(keystorePath)),
+                    FileUtils.openInputStream(FileUtils.getFile(keyStorePathFull)),
                     keystorePassword.toCharArray());
         }
 
