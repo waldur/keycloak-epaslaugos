@@ -43,7 +43,9 @@ public class ViispIdentityProviderConfig extends IdentityProviderModel {
     }
 
     public String getAuthServiceUrl() {
-        return getConfig() != null ? getConfig().get("authServiceUrl") : "https://test.epaslaugos.lt/services/services/auth";
+        return getConfig() != null
+                ? getConfig().get("authServiceUrl")
+                : "https://test.epaslaugos.lt/services/services/auth";
     }
 
     public void setAuthServiceUrl(String authServiceUrl) {

@@ -357,7 +357,8 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
                 // Retrieve user identity from VIISP using ticket
                 ViispIdentityProviderConfig viispConfig =
                         new ViispIdentityProviderConfig(provider.getConfig());
-                ViispUserInfo userInfo = xmlClient.getUserInfo(ticket, viispConfig.getAuthServiceUrl());
+                ViispUserInfo userInfo =
+                        xmlClient.getUserInfo(ticket, viispConfig.getAuthServiceUrl());
 
                 LOG.info("User info: {}", userInfo); // TODO: remove after testing
 
