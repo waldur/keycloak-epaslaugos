@@ -136,7 +136,7 @@ public class ViispXMLClient {
         String authServiceURL =
                 isTestMode
                         ? "https://test.epaslaugos.lt/services/services/auth"
-                        : "https://epaslaugos.lt/services/services/auth";
+                        : "https://www.epaslaugos.lt/services/services/auth";
 
         HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request =
@@ -172,7 +172,7 @@ public class ViispXMLClient {
         String authServiceURL =
                 isTestMode
                         ? "https://test.epaslaugos.lt/services/services/auth"
-                        : "https://epaslaugos.lt/services/services/auth";
+                        : "https://www.epaslaugos.lt/services/services/auth";
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request =
