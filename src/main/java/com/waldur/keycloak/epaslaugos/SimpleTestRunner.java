@@ -21,12 +21,12 @@ public class SimpleTestRunner {
                     client.requestAuthenticationTicket(
                             "http://test-callback",
                             "VSID000000000113",
-                            true,
+                            "https://test.epaslaugos.lt/services/services/auth",
                             UUID.randomUUID().toString());
             System.out.println("✓ Generated authentication ticket: " + ticket);
 
             // Test user info retrieval
-            ViispUserInfo userInfo = client.getUserInfo(ticket, true);
+            ViispUserInfo userInfo = client.getUserInfo(ticket, "https://test.epaslaugos.lt/services/services/auth");
             System.out.println("✓ Retrieved user info:");
             System.out.println("  Personal Code: " + userInfo.getPersonalCode());
             System.out.println("  Name: " + userInfo.getFirstName() + " " + userInfo.getLastName());
