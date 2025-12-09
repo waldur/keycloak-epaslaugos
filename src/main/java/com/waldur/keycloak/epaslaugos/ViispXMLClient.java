@@ -151,7 +151,7 @@ public class ViispXMLClient {
         if (response.statusCode() != HttpStatus.SC_OK) {
             throw new RuntimeException(
                     String.format(
-                            "VIISP auth request failed. Expected 200, got %d. Response: %s",
+                            "VIISP auth request failed. Expected 200, got %d. Headers: %s. Response: %s",
                             response.statusCode(), response.headers(), response.body()));
         }
         return response.body();
