@@ -26,7 +26,8 @@ public class SimpleTestRunner {
             System.out.println("✓ Generated authentication ticket: " + ticket);
 
             // Test user info retrieval
-            ViispUserInfo userInfo = client.getUserInfo(ticket, "https://test.epaslaugos.lt/services/services/auth");
+            ViispUserInfo userInfo =
+                    client.getUserInfo(ticket, "https://test.epaslaugos.lt/services/services/auth");
             System.out.println("✓ Retrieved user info:");
             System.out.println("  Personal Code: " + userInfo.getPersonalCode());
             System.out.println("  Name: " + userInfo.getFirstName() + " " + userInfo.getLastName());
