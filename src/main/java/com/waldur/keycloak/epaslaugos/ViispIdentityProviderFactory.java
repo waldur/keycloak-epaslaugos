@@ -26,7 +26,7 @@ public class ViispIdentityProviderFactory
         ProviderConfigProperty authServiceUrl = new ProviderConfigProperty();
         authServiceUrl.setName("authServiceUrl");
         authServiceUrl.setLabel("Auth service URL");
-        authServiceUrl.setType(ProviderConfigProperty.URL_TYPE);
+        authServiceUrl.setType(ProviderConfigProperty.STRING_TYPE);
         authServiceUrl.setHelpText(
                 "URL of the auth service, for example https://test.epaslaugos.lt/services/services/auth");
         authServiceUrl.setRequired(true);
