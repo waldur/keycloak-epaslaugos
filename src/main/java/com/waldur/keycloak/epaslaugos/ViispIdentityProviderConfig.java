@@ -42,13 +42,13 @@ public class ViispIdentityProviderConfig extends IdentityProviderModel {
         }
     }
 
-    public boolean isTestMode() {
-        return getConfig() != null ? Boolean.parseBoolean(getConfig().get("testMode")) : true;
+    public String getAuthServiceUrl() {
+        return getConfig() != null ? getConfig().get("authServiceUrl") : "https://test.epaslaugos.lt/services/services/auth";
     }
 
-    public void setTestMode(boolean testMode) {
+    public void setAuthServiceUrl(String authServiceUrl) {
         if (getConfig() != null) {
-            getConfig().put("testMode", String.valueOf(testMode));
+            getConfig().put("authServiceUrl", authServiceUrl);
         }
     }
 

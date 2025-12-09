@@ -23,15 +23,14 @@ public class ViispIdentityProviderFactory
         serviceIdProperty.setRequired(true);
         configProperties.add(serviceIdProperty);
 
-        ProviderConfigProperty testModeProperty;
-        testModeProperty = new ProviderConfigProperty();
-        testModeProperty.setName("testMode");
-        testModeProperty.setLabel("Test mode");
-        testModeProperty.setType(ProviderConfigProperty.BOOLEAN_TYPE);
-        testModeProperty.setHelpText("Test mode flag.");
-        testModeProperty.setRequired(true);
-        testModeProperty.setDefaultValue("false");
-        configProperties.add(testModeProperty);
+        ProviderConfigProperty authServiceUrl = new ProviderConfigProperty();
+        authServiceUrl.setName("authServiceUrl");
+        authServiceUrl.setLabel("Auth service URL");
+        authServiceUrl.setType(ProviderConfigProperty.URL_TYPE);
+        authServiceUrl.setHelpText("URL of the auth service, for example https://test.epaslaugos.lt/services/services/auth");
+        authServiceUrl.setRequired(true);
+        authServiceUrl.setDefaultValue("https://test.epaslaugos.lt/services/services/auth");
+        configProperties.add(authServiceUrl);
 
         ProviderConfigProperty keystorePathProperty = new ProviderConfigProperty();
         keystorePathProperty.setName("keystorePath");

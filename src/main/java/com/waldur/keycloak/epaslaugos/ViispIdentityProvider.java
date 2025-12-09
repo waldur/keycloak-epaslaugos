@@ -140,7 +140,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
                     xmlClient.requestAuthenticationTicket(
                             callbackUrl,
                             viispConfig.getServiceId(),
-                            viispConfig.isTestMode(),
+                            viispConfig.getAuthServiceUrl(),
                             encodedState);
             if (ticketId == null || ticketId.trim().isEmpty()) {
                 throw new IdentityBrokerException(
@@ -357,7 +357,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
                 // Retrieve user identity from VIISP using ticket
                 ViispIdentityProviderConfig viispConfig =
                         new ViispIdentityProviderConfig(provider.getConfig());
-                ViispUserInfo userInfo = xmlClient.getUserInfo(ticket, viispConfig.isTestMode());
+                ViispUserInfo userInfo = xmlClient.getUserInfo(ticket, viispConfig.getAuthServiceUrl());
 
                 LOG.info("User info: {}", userInfo); // TODO: remove after testing
 

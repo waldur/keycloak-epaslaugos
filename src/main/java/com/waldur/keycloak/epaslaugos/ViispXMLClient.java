@@ -124,8 +124,9 @@ public class ViispXMLClient {
         }
     }
 
-    public String sendAuthRequest(String authRequest, boolean isTestMode)
+    public String sendAuthRequest(String authRequest, String authServiceURL)
             throws IOException, InterruptedException {
+        LOG.info("Sending auth request to {}", authServiceURL);
         String authRequestBody =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                         + "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"
@@ -133,12 +134,8 @@ public class ViispXMLClient {
                         + authRequest
                         + "</soap:Body>"
                         + "</soap:Envelope>";
-        String authServiceURL =
-                isTestMode
-                        ? "https://test.epaslaugos.lt/services/services/auth"
-                        : "https://www.epaslaugos.lt/services/services/auth";
 
-        HttpClient client = HttpClient.newBuilder().build();
+        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(authServiceURL))
@@ -160,8 +157,9 @@ public class ViispXMLClient {
         return response.body();
     }
 
-    public String sendAuthDataRequest(String authDataRequest, boolean isTestMode)
+    public String sendAuthDataRequest(String authDataRequest, String authServiceURL)
             throws IOException, InterruptedException {
+        LOG.info("Sending auth data request to {}", authServiceURL);
         String authDataRequestBody =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                         + "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"
@@ -169,10 +167,6 @@ public class ViispXMLClient {
                         + authDataRequest
                         + "</soap:Body>"
                         + "</soap:Envelope>";
-        String authServiceURL =
-                isTestMode
-                        ? "https://test.epaslaugos.lt/services/services/auth"
-                        : "https://www.epaslaugos.lt/services/services/auth";
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request =
@@ -274,17 +268,17 @@ public class ViispXMLClient {
     }
 
     public String requestAuthenticationTicket(
-            String callbackUrl, String serviceId, boolean isTestMode, String customData)
+            String callbackUrl, String serviceId, String authServiceURL, String customData)
             throws Exception {
         String authRequest = buildAuthRequest(serviceId, callbackUrl, customData);
-        String ticketData = sendAuthRequest(authRequest, isTestMode);
+        String ticketData = sendAuthRequest(authRequest, authServiceURL);
         return parseTicketFromXml(ticketData);
     }
 
-    public ViispUserInfo getUserInfo(String ticket, boolean isTestMode) throws Exception {
+    public ViispUserInfo getUserInfo(String ticket, String authServiceURL) throws Exception {
         String authDataRequest = buildAuthDataRequest(ticket);
         LOG.info("Auth data request content: {}", authDataRequest);
-        String authDataResponse = sendAuthDataRequest(authDataRequest, isTestMode);
+        String authDataResponse = sendAuthDataRequest(authDataRequest, authServiceURL);
         return parseUserDataFromXml(authDataResponse);
     }
 
