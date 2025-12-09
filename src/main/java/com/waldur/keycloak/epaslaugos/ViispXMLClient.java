@@ -138,7 +138,7 @@ public class ViispXMLClient {
                         ? "https://test.epaslaugos.lt/services/services/auth"
                         : "https://epaslaugos.lt/services/services/auth";
 
-        HttpClient client = HttpClient.newHttpClient();
+        HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(authServiceURL))
@@ -155,7 +155,7 @@ public class ViispXMLClient {
             throw new RuntimeException(
                     String.format(
                             "VIISP auth request failed. Expected 200, got %d. Response: %s",
-                            response.statusCode(), response.body()));
+                            response.statusCode(), response.headers(), response.body()));
         }
         return response.body();
     }
