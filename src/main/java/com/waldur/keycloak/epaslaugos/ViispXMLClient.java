@@ -79,31 +79,37 @@ public class ViispXMLClient {
             keystorePassword = "viisp-test";
         }
 
-        KeyStore keyStore = KeyStore.getInstance("JKS");
+        try {
 
-        if (keystorePath.startsWith("/")) {
-            // Load from classpath
-            LOG.info("Loading the keystore from {}", keystorePath);
-            keyStore.load(
-                    getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
-        } else {
-            // Load from file system
-            String keyStorePathFull = "/" + keystorePath;
-            LOG.info("Loading the keystore from {}", keyStorePathFull);
-            keyStore.load(
-                    FileUtils.openInputStream(FileUtils.getFile(keyStorePathFull)),
-                    keystorePassword.toCharArray());
-        }
+            KeyStore keyStore = KeyStore.getInstance("JKS");
 
-        for (Enumeration<String> e = keyStore.aliases(); e.hasMoreElements(); ) {
-            String alias = e.nextElement();
-            if (keyStore.isKeyEntry(alias)) {
-                privateKey = (PrivateKey) keyStore.getKey(alias, keystorePassword.toCharArray());
-                X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
-                publicKey = cert.getPublicKey();
-                break;
+            if (keystorePath.startsWith("/")) {
+                // Load from classpath
+                LOG.info("Loading the keystore from {}", keystorePath);
+                keyStore.load(
+                        getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
+            } else {
+                // Load from file system
+                String keyStorePathFull = "/" + keystorePath;
+                LOG.info("Loading the keystore from {}", keyStorePathFull);
+                keyStore.load(
+                        FileUtils.openInputStream(FileUtils.getFile(keyStorePathFull)),
+                        keystorePassword.toCharArray());
             }
-        }
+
+            for (Enumeration<String> e = keyStore.aliases(); e.hasMoreElements(); ) {
+                String alias = e.nextElement();
+                if (keyStore.isKeyEntry(alias)) {
+                    privateKey = (PrivateKey) keyStore.getKey(alias, keystorePassword.toCharArray());
+                    X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
+                    publicKey = cert.getPublicKey();
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("Unable to read the keystore file, reason: {}", e);
+            throw e;
+        };
 
         if (privateKey == null || publicKey == null) {
             throw new RuntimeException("No valid key pair found in keystore");
