@@ -87,7 +87,8 @@ public class ViispXMLClient {
                 // Load from classpath
                 LOG.info("Loading the keystore from {}", keystorePath);
                 keyStore.load(
-                        getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
+                        getClass().getResourceAsStream(keystorePath),
+                        keystorePassword.toCharArray());
             } else {
                 // Load from file system
                 String keyStorePathFull = "/" + keystorePath;
@@ -100,7 +101,8 @@ public class ViispXMLClient {
             for (Enumeration<String> e = keyStore.aliases(); e.hasMoreElements(); ) {
                 String alias = e.nextElement();
                 if (keyStore.isKeyEntry(alias)) {
-                    privateKey = (PrivateKey) keyStore.getKey(alias, keystorePassword.toCharArray());
+                    privateKey =
+                            (PrivateKey) keyStore.getKey(alias, keystorePassword.toCharArray());
                     X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
                     publicKey = cert.getPublicKey();
                     break;
@@ -109,7 +111,8 @@ public class ViispXMLClient {
         } catch (Exception e) {
             LOG.error("Unable to read the keystore file, reason: {}", e);
             throw e;
-        };
+        }
+        ;
 
         if (privateKey == null || publicKey == null) {
             throw new RuntimeException("No valid key pair found in keystore");
