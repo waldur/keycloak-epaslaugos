@@ -79,15 +79,13 @@ public class ViispXMLClient {
             keystorePassword = "viisp-test";
         }
 
-
         KeyStore keyStore = KeyStore.getInstance("JKS");
 
         if (keystorePath.startsWith("/")) {
             // Load from classpath
             LOG.info("Loading the keystore from {}", keystorePath);
             keyStore.load(
-                    getClass().getResourceAsStream(keystorePath),
-                    keystorePassword.toCharArray());
+                    getClass().getResourceAsStream(keystorePath), keystorePassword.toCharArray());
         } else {
             // Load from file system
             String keyStorePathFull = "/" + keystorePath;
@@ -103,8 +101,7 @@ public class ViispXMLClient {
             if (keyStore.isKeyEntry(alias)) {
                 LOG.info("The alias {} has a key entry, loading it", alias);
 
-                privateKey =
-                        (PrivateKey) keyStore.getKey(alias, keystorePassword.toCharArray());
+                privateKey = (PrivateKey) keyStore.getKey(alias, keystorePassword.toCharArray());
                 if (privateKey != null) {
                     LOG.info("The private key is loaded successfully");
                 }
