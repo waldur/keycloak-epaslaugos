@@ -33,6 +33,17 @@ public class ViispIdentityProviderFactory
         authServiceUrl.setDefaultValue("https://test.epaslaugos.lt/services/services/auth");
         configProperties.add(authServiceUrl);
 
+        ProviderConfigProperty redirectServiceUrl = new ProviderConfigProperty();
+        redirectServiceUrl.setName("redirectServiceUrl");
+        redirectServiceUrl.setLabel("Redirect service URL");
+        redirectServiceUrl.setType(ProviderConfigProperty.STRING_TYPE);
+        redirectServiceUrl.setHelpText(
+                "URL of the redirect after successful auth request, for example https://test.epaslaugos.lt/portal/external/services/authentication/v2");
+        redirectServiceUrl.setRequired(true);
+        redirectServiceUrl.setDefaultValue(
+                "https://test.epaslaugos.lt/portal/external/services/authentication/v2");
+        configProperties.add(redirectServiceUrl);
+
         ProviderConfigProperty keystorePathProperty = new ProviderConfigProperty();
         keystorePathProperty.setName("keystorePath");
         keystorePathProperty.setLabel("Keystore Path");

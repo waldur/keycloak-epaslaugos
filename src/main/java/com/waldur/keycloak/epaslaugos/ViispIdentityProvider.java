@@ -152,8 +152,10 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
             LOG.info("Authentication session after setting notes: {}", authSession);
             LOG.info("Stored VIISP_TICKET_ID: {}", ticketId);
             LOG.info("Stored VIISP_STATE_COPY: {}", encodedState);
+            String redirectUrl = viispConfig.getRedirectServiceUrl();
             LOG.info("Stored auth notes in session");
-            String ticketSubmitPage = createTicketSubmitPage(ticketId);
+            LOG.info("Using the redirect service URL {}", redirectUrl);
+            String ticketSubmitPage = createTicketSubmitPage(ticketId, redirectUrl);
             return Response.ok(ticketSubmitPage).type(MediaType.TEXT_HTML_TYPE).build();
         } catch (IllegalArgumentException e) {
             throw new IdentityBrokerException("Invalid VIISP configuration: " + e.getMessage(), e);
@@ -167,7 +169,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
         }
     }
 
-    private String createTicketSubmitPage(String ticketId) {
+    private String createTicketSubmitPage(String ticketId, String redirectUrl) {
         return String.format(
                 "<!DOCTYPE html>"
                         + "<html><head>"
@@ -186,7 +188,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
                         + "<div class='container'>"
                         + "<h2>Redirecting to VIISP...</h2>"
                         + "<p>Please wait while we redirect you to the authentication service.</p>"
-                        + "<form name='REQUEST' method='post' action='https://test.epaslaugos.lt/portal/external/services/authentication/v2'>"
+                        + "<form name='REQUEST' method='post' action='%s'>"
                         + "<input type='hidden' name='ticket' value='%s'/>"
                         + "<noscript>"
                         + "<p>JavaScript is disabled. Please click the button below to continue.</p>"
@@ -195,7 +197,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
                         + "</form>"
                         + "</div>"
                         + "</body></html>",
-                ticketId);
+                redirectUrl, ticketId);
     }
 
     private void validateConfig(ViispIdentityProviderConfig config) {

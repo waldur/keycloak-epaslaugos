@@ -54,6 +54,18 @@ public class ViispIdentityProviderConfig extends IdentityProviderModel {
         }
     }
 
+    public String getRedirectServiceUrl() {
+        return getConfig() != null
+                ? getConfig().get("redirectServiceUrl")
+                : "https://test.epaslaugos.lt/portal/external/services/authentication/v2";
+    }
+
+    public void setRedirectServiceUrl(String redirectServiceUrl) {
+        if (getConfig() != null) {
+            getConfig().put("redirectServiceUrl", redirectServiceUrl);
+        }
+    }
+
     public String getRequestedAttributes() {
         return getConfig() != null
                 ? getConfig()
