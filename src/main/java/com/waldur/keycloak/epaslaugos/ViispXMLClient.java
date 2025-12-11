@@ -279,6 +279,7 @@ public class ViispXMLClient {
         String authDataRequest = buildAuthDataRequest(ticket);
         LOG.info("Auth data request content: {}", authDataRequest);
         String authDataResponse = sendAuthDataRequest(authDataRequest, authServiceURL);
+        LOG.info("Auth data response content: {}", authDataResponse);
         return parseUserDataFromXml(authDataResponse);
     }
 
