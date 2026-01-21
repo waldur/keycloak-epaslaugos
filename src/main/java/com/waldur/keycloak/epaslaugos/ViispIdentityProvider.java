@@ -242,6 +242,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
 
     // VIISP Callback Endpoint
     protected static class ViispEndpoint {
+
         private final ViispIdentityProvider provider;
         private final AuthenticationCallback callback;
         private final RealmModel realm;
@@ -393,6 +394,11 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
 
             // Add VIISP-specific custom attributes
             LOG.info("Settings up additional attributes");
+            String personalUniqueId =
+                    String.format(
+                            "urn:schac:personalUniqueID:lt:nationalIDCard:%s",
+                            userInfo.getPersonalCode());
+            identity.setUserAttribute("schacPersonalUniqueID", personalUniqueId);
             identity.setUserAttribute("lt-personal-code", userInfo.getPersonalCode());
             identity.setUserAttribute("authentication-provider", userInfo.getAuthProvider());
 
