@@ -370,6 +370,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
                 identity.setAuthenticationSession(authSession);
 
                 LOG.info("Brokered identity context: {}", identity);
+                LOG.info("Brokered identity attributes: {}", identity.getAttributes());
                 return callback.authenticated(identity);
             } catch (Exception e) {
                 event.error("VIISP_AUTHENTICATION_FAILED");
