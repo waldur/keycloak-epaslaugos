@@ -402,6 +402,8 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
             identity.setUserAttribute("schacPersonalUniqueID", personalUniqueId);
             identity.setUserAttribute("lt-personal-code", userInfo.getPersonalCode());
             identity.setUserAttribute("authentication-provider", userInfo.getAuthProvider());
+            identity.setUserAttribute("companyName", userInfo.getCompanyName());
+            identity.setUserAttribute("companyCode", userInfo.getCompanyCode());
 
             // Store authentication context
             LOG.info("Settings up provider");

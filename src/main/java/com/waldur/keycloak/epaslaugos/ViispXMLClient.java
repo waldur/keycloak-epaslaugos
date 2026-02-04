@@ -373,6 +373,10 @@ public class ViispXMLClient {
             if ("lt-personal-code".equals(attributeType) && attributeValue != null) {
                 userInfo.setPersonalCode(attributeValue);
             }
+
+            if ("lt-company-code".equals(attributeType) && attributeValue != null) {
+                userInfo.setCompanyCode(attributeValue);
+            }
         }
 
         // Extract user information (firstName, lastName, email)
@@ -419,6 +423,9 @@ public class ViispXMLClient {
                         break;
                     case "email":
                         userInfo.setEmail(informationValue);
+                        break;
+                    case "companyName":
+                        userInfo.setCompanyName(informationValue);
                         break;
                 }
             }
