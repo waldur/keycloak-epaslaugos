@@ -15,6 +15,7 @@ import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.services.managers.ClientSessionCode;
 import org.keycloak.sessions.AuthenticationSessionModel;
@@ -32,6 +33,35 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
     public ViispIdentityProvider(KeycloakSession session, ViispIdentityProviderConfig config) {
         super(session, config);
         this.xmlClient = new ViispXMLClient(config);
+    }
+
+    @Override
+    public void updateBrokeredUser(
+            KeycloakSession session,
+            RealmModel realm,
+            UserModel user,
+            BrokeredIdentityContext context) {
+        // Update company attributes for existing users on every login
+        String companyName = context.getUserAttribute("companyName");
+        String companyCode = context.getUserAttribute("companyCode");
+
+        if (companyName != null && !companyName.isEmpty()) {
+            user.setSingleAttribute("companyName", companyName);
+            LOG.info("Updated user {} companyName to: {}", user.getUsername(), companyName);
+        } else {
+            // Clear the attribute if not provided (user logged in as individual, not company)
+            user.removeAttribute("companyName");
+            LOG.info("Cleared companyName for user {} (not a company login)", user.getUsername());
+        }
+
+        if (companyCode != null && !companyCode.isEmpty()) {
+            user.setSingleAttribute("companyCode", companyCode);
+            LOG.info("Updated user {} companyCode to: {}", user.getUsername(), companyCode);
+        } else {
+            // Clear the attribute if not provided
+            user.removeAttribute("companyCode");
+            LOG.info("Cleared companyCode for user {} (not a company login)", user.getUsername());
+        }
     }
 
     @Override
