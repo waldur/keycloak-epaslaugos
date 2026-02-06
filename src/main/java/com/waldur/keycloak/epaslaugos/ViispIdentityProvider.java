@@ -41,26 +41,50 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
             RealmModel realm,
             UserModel user,
             BrokeredIdentityContext context) {
-        // Update company attributes for existing users on every login
-        String companyName = context.getUserAttribute("companyName");
-        String companyCode = context.getUserAttribute("companyCode");
-
-        if (companyName != null && !companyName.isEmpty()) {
-            user.setSingleAttribute("companyName", companyName);
-            LOG.info("Updated user {} companyName to: {}", user.getUsername(), companyName);
-        } else {
-            // Clear the attribute if not provided (user logged in as individual, not company)
-            user.removeAttribute("companyName");
-            LOG.info("Cleared companyName for user {} (not a company login)", user.getUsername());
+        // Sync core identity fields on every login
+        if (context.getFirstName() != null) {
+            user.setFirstName(context.getFirstName());
+        }
+        if (context.getLastName() != null) {
+            user.setLastName(context.getLastName());
+        }
+        if (context.getEmail() != null) {
+            user.setEmail(context.getEmail());
         }
 
-        if (companyCode != null && !companyCode.isEmpty()) {
-            user.setSingleAttribute("companyCode", companyCode);
-            LOG.info("Updated user {} companyCode to: {}", user.getUsername(), companyCode);
+        LOG.info(
+                "Updated user {} core fields: firstName={}, lastName={}, email={}",
+                user.getUsername(),
+                context.getFirstName(),
+                context.getLastName(),
+                context.getEmail());
+
+        // Sync custom attributes
+        syncAttribute(user, context, "lt-personal-code");
+        syncAttribute(user, context, "schacPersonalUniqueID");
+        syncAttribute(user, context, "authentication-provider");
+
+        // Sync company attributes (clear when not present, i.e. individual login)
+        syncCompanyAttribute(user, context, "companyName");
+        syncCompanyAttribute(user, context, "companyCode");
+    }
+
+    private void syncAttribute(UserModel user, BrokeredIdentityContext context, String attrName) {
+        String value = context.getUserAttribute(attrName);
+        if (value != null && !value.isEmpty()) {
+            user.setSingleAttribute(attrName, value);
+        }
+    }
+
+    private void syncCompanyAttribute(
+            UserModel user, BrokeredIdentityContext context, String attrName) {
+        String value = context.getUserAttribute(attrName);
+        if (value != null && !value.isEmpty()) {
+            user.setSingleAttribute(attrName, value);
+            LOG.info("Updated user {} {} to: {}", user.getUsername(), attrName, value);
         } else {
-            // Clear the attribute if not provided
-            user.removeAttribute("companyCode");
-            LOG.info("Cleared companyCode for user {} (not a company login)", user.getUsername());
+            user.removeAttribute(attrName);
+            LOG.info("Cleared {} for user {} (not a company login)", attrName, user.getUsername());
         }
     }
 
