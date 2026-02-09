@@ -67,6 +67,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
         // Sync company attributes (clear when not present, i.e. individual login)
         syncCompanyAttribute(user, context, "companyName");
         syncCompanyAttribute(user, context, "companyCode");
+        syncCompanyAttribute(user, context, "schacHomeOrganization");
     }
 
     private void syncAttribute(UserModel user, BrokeredIdentityContext context, String attrName) {
@@ -458,6 +459,7 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
             identity.setUserAttribute("authentication-provider", userInfo.getAuthProvider());
             identity.setUserAttribute("companyName", userInfo.getCompanyName());
             identity.setUserAttribute("companyCode", userInfo.getCompanyCode());
+            identity.setUserAttribute("schacHomeOrganization", userInfo.getCompanyName());
 
             // Store authentication context
             LOG.info("Settings up provider");
