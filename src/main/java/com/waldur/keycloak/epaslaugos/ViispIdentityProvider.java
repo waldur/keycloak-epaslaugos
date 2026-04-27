@@ -68,6 +68,14 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
         syncCompanyAttribute(user, context, "companyName");
         syncCompanyAttribute(user, context, "companyCode");
         syncCompanyAttribute(user, context, "schacHomeOrganization");
+
+        // Sync optional VIISP attributes (clear when not present)
+        syncOptionalAttribute(user, context, "address");
+        syncOptionalAttribute(user, context, "phoneNumber");
+        syncOptionalAttribute(user, context, "birthday");
+        syncOptionalAttribute(user, context, "nationality");
+        syncOptionalAttribute(user, context, "proxyType");
+        syncOptionalAttribute(user, context, "proxySource");
     }
 
     private void syncAttribute(UserModel user, BrokeredIdentityContext context, String attrName) {
@@ -86,6 +94,19 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
         } else {
             user.removeAttribute(attrName);
             LOG.info("Cleared {} for user {} (not a company login)", attrName, user.getUsername());
+        }
+    }
+
+    private void syncOptionalAttribute(
+            UserModel user, BrokeredIdentityContext context, String attrName) {
+        String value = context.getUserAttribute(attrName);
+        if (value != null && !value.isEmpty()) {
+            user.setSingleAttribute(attrName, value);
+            LOG.info("Updated user {} {} to: {}", user.getUsername(), attrName, value);
+        } else {
+            user.removeAttribute(attrName);
+            LOG.info(
+                    "Cleared {} for user {} (not provided by VIISP)", attrName, user.getUsername());
         }
     }
 
@@ -460,6 +481,12 @@ public class ViispIdentityProvider extends AbstractIdentityProvider<IdentityProv
             identity.setUserAttribute("companyName", userInfo.getCompanyName());
             identity.setUserAttribute("companyCode", userInfo.getCompanyCode());
             identity.setUserAttribute("schacHomeOrganization", userInfo.getCompanyName());
+            identity.setUserAttribute("address", userInfo.getAddress());
+            identity.setUserAttribute("phoneNumber", userInfo.getPhoneNumber());
+            identity.setUserAttribute("birthday", userInfo.getBirthday());
+            identity.setUserAttribute("nationality", userInfo.getNationality());
+            identity.setUserAttribute("proxyType", userInfo.getProxyType());
+            identity.setUserAttribute("proxySource", userInfo.getProxySource());
 
             // Store authentication context
             LOG.info("Settings up provider");

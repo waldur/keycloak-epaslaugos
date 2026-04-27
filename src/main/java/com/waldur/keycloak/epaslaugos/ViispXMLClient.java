@@ -427,6 +427,24 @@ public class ViispXMLClient {
                     case "companyName":
                         userInfo.setCompanyName(informationValue);
                         break;
+                    case "address":
+                        userInfo.setAddress(informationValue);
+                        break;
+                    case "phoneNumber":
+                        userInfo.setPhoneNumber(informationValue);
+                        break;
+                    case "birthday":
+                        userInfo.setBirthday(informationValue);
+                        break;
+                    case "nationality":
+                        userInfo.setNationality(informationValue);
+                        break;
+                    case "proxyType":
+                        userInfo.setProxyType(informationValue);
+                        break;
+                    case "proxySource":
+                        userInfo.setProxySource(informationValue);
+                        break;
                 }
             }
         }

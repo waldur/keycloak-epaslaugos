@@ -10,6 +10,11 @@ public class ViispUserInfo {
     private String authProvider;
     private String birthday;
     private String companyName;
+    private String address;
+    private String phoneNumber;
+    private String nationality;
+    private String proxyType;
+    private String proxySource;
 
     public ViispUserInfo() {}
 
@@ -77,6 +82,46 @@ public class ViispUserInfo {
         this.companyName = companyName;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getNationality() {
+        return nationality;
+    }
+
+    public void setNationality(String nationality) {
+        this.nationality = nationality;
+    }
+
+    public String getProxyType() {
+        return proxyType;
+    }
+
+    public void setProxyType(String proxyType) {
+        this.proxyType = proxyType;
+    }
+
+    public String getProxySource() {
+        return proxySource;
+    }
+
+    public void setProxySource(String proxySource) {
+        this.proxySource = proxySource;
+    }
+
     @Override
     public String toString() {
         return "ViispUserInfo{"
@@ -103,6 +148,21 @@ public class ViispUserInfo {
                 + '\''
                 + ", companyName='"
                 + companyName
+                + '\''
+                + ", address='"
+                + address
+                + '\''
+                + ", phoneNumber='"
+                + phoneNumber
+                + '\''
+                + ", nationality='"
+                + nationality
+                + '\''
+                + ", proxyType='"
+                + proxyType
+                + '\''
+                + ", proxySource='"
+                + proxySource
                 + '\''
                 + '}';
     }
